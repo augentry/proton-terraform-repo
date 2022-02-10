@@ -163,6 +163,12 @@ jobs:
           terraform_version: 1.0.7
           terraform_wrapper: false
           
+            # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init
+        id: tf_init
+        continue-on-error: true
+        run: terraform init -backend-config="bucket=${{ needs.get-deployment-data.outputs.state_bucket }}" -backend-config="key=${{ needs.get-deployment-data.outputs.working_directory }}terraform.tfstate" -backend-config="region=${{ needs.get-deployment-data.outputs.target_region }}"
+          
       # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
         id: tf_fmt
@@ -214,11 +220,6 @@ jobs:
           role-to-assume: ${{ needs.get-deployment-data.outputs.role_arn }}
           role-session-name: TF-Github-Actions
         
-      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-      - name: Terraform Init
-        id: tf_init
-        continue-on-error: true
-        run: terraform init -backend-config="bucket=${{ needs.get-deployment-data.outputs.state_bucket }}" -backend-config="key=${{ needs.get-deployment-data.outputs.working_directory }}terraform.tfstate" -backend-config="region=${{ needs.get-deployment-data.outputs.target_region }}"
       - name: Notify Proton Success
         id: notify_success
         if: needs.terraform.result == 'success' && steps.tf_init.outcome == 'success'
